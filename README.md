@@ -4,7 +4,7 @@ Soy Ema y estoy aprendiendo a usar Github.
 
 ## Mi objetivo
 
-Quiero organizar mis trabajos de Big Data.
+Quiero organizar mis trabajos de Big Data y aprender mucho.
 
 ## Mi primer avance
 
