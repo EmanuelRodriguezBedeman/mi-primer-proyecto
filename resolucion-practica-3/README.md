@@ -1,3 +1,9 @@
+# Entrega práctica 3 - No SQL
+
+- **Nombre:** Emanuel Rodriguez Bedeman
+- **student_id:** emanuel_rb
+- **Escala:** small
+
 ### CAP y PACELC (`01_cap_pacelc`)
 
 1. Con la red partida, ¿qué respondió la réplica `C` en modo CP y qué respondió en modo AP? ¿Qué propiedad de CAP sacrifica cada modo?
