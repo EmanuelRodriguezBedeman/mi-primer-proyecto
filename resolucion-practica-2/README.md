@@ -96,6 +96,8 @@ GROUP BY source_batch_id;
 ```
 ![query 1](imgs/image-8.png)
 
+> `batch_002` y `batch_003` recibieron 204 filas físicas cada uno. El generador arma cada lote con 200 altas, la corrección de la transacción 42, una fila duplicada, un importe `N/A` y un cliente inexistente: 204. `initial` no aparece porque esa tabla solo tiene los CSV incrementales.
+
 ### 2. Para cada lote, ¿cuántas transacciones fueron aceptadas y cuántas quedaron en `silver_transactions_quarantine`? Reconciliá tus resultados con `gold_batch_summary`.
 
 ```sql
@@ -125,6 +127,8 @@ ORDER BY g.source_batch_id;
 
 ![query 2](imgs/image-9.png)
 
+> Aceptadas y rechazadas coinciden entre Silver y `gold_batch_summary` (`accepted_ok` y `rejected_ok` en true). `batch_002`: 200 y 2. `batch_003`: 201 y 2. `initial`: 49.948 y 51. De las 204 filas físicas, el duplicado se descarta y dos van a cuarentena. La corrección de la transacción 42 no inserta una fila nueva: actualiza la que ya existía y queda contada en `batch_003`, el lote de la versión vigente. Por eso ese lote tiene 201 aceptadas y `batch_002` se queda en 200.
+
 ### 3. ¿Qué motivos de rechazo aparecen en la cuarentena y cuántos registros tiene cada uno por lote? ¿Los rechazos observados coinciden con los casos introducidos por el generador?
 
 ```sql
@@ -138,6 +142,8 @@ ORDER BY source_batch_id;
 ```
 
 ![query 3](imgs/image-10.png)
+
+> En `batch_002` y en `batch_003` hay un `INVALID_AMOUNT` y un `UNKNOWN_CUSTOMER`. Son los dos errores que inyecta el generador en cada lote. En `initial` hay 51 `INVALID_AMOUNT` y ningún otro motivo.
 
 ### 4. Seguí la transacción 42 desde `bronze_transactions_all` hasta `silver_transactions`. ¿Cuántas versiones existen en Bronze y cuál quedó vigente en Silver? Mostrá las columnas que justifican la elección.
 
@@ -242,6 +248,8 @@ CROSS JOIN fecha_max_transacciones t;
 ```
 
 ![query 7](imgs/image-11.png)
+
+> El mayor monto y la mayor cantidad de transacciones caen el mismo día, 2026-03-01. `coinciden` es true.
 
 ### 8. ¿Qué canal de pago tiene la mayor tasa global de fraude? Calculala como `SUM(fraud_transactions) / SUM(transaction_count)` y explicá por qué no corresponde promediar directamente `fraud_rate`.
 
