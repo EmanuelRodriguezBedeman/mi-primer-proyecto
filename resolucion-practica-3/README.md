@@ -30,7 +30,7 @@ Con `W=3` el `p99=55,6ms`.
 
 4. Con cinco réplicas partidas en `ABC | DE`, ¿qué lado pudo seguir escribiendo en modo CP y por qué?
 
-Siguió escribiendo el lado `ABC` porque la cantidad de nodos totales es mayor que la cantidad de escritura y lectura.
+Siguió escribiendo el lado `ABC` porque tiene `3` de las `5` réplicas, la mayoría necesaria para el quórum (`5 // 2 + 1 = 3`). El lado `DE` tiene `2` y no llega, así que rechaza las escrituras.
 
 ### Clave-valor (`02_clave_valor`)
 
@@ -90,7 +90,7 @@ El grafo tiene 5,400 aristas `USES`.
 
 13. ¿Cuántos joins necesitó SQL para el patrón de 2 saltos y para el de 4? ¿Por qué Neo4j recorre relaciones más eficientemente que una base relacional?
 
-SQL para el patrón de **dos saltos** necesitó `3 JOINS` y para el de **cuatro saltos** necesita `4 JOINS`.
+SQL para el patrón de **dos saltos** necesitó `3` joins y para el de **cuatro saltos** necesitó `5`: uno por cada arista del patrón más el join al nodo cliente final.
 
 `Neo4j` lo hace más eficientemente porque ya guarda en cada nodo punteros a sus vecinos (*index-free adjacency*), lo que le permite pasar de un cliente a un dispositivo sin necesidad de buscar en una tabla.
 
