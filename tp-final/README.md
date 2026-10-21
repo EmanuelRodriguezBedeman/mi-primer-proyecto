@@ -32,7 +32,7 @@ La carga y, cuando se agreguen, los filtros y las columnas nuevas corren con Spa
 
 ## Features
 
-Los puntajes `Anxiety`, `Depression`, `Insomnia` y `OCD` se pueden usar como variables. El widget `Puntajes que entran` elige `ninguno`, `seleccionados` o `los cuatro`. Si es `seleccionados`, el widget `Puntajes seleccionados` lista los nombres separados por coma, por ejemplo `Depression, Anxiety`.
+Qué puntajes de salud entran como variables se elige en el notebook de entrenamiento, no en la exploración. Ahí cada uno (`Anxiety`, `Depression`, `Insomnia`, `OCD`) se marca por separado.
 
 ## Modelos previstos
 
@@ -51,5 +51,5 @@ Esas celdas todavía no están. Primero se mira la exploración.
 
 1. En Databricks, abrir `01_experimentos.ipynb` con un cluster de notebooks, no con un SQL warehouse.
 2. Dejar el widget `Archivo CSV` como viene: apunta a `data/mxmh_survey_results.csv` al lado del notebook.
-3. Elegir `Puntajes que entran` y ejecutar de arriba hacia abajo.
+3. Ejecutar de arriba hacia abajo.
 4. El experimento de MLflow, cuando se entrene, va a ser `/Users/<usuario>/bigdata_emanuel_rb_tp_final`.
