@@ -76,7 +76,7 @@ La carga, el casteo y la escritura de `survey_cleaned` corren con Spark. La tabl
 
 ## Features
 
-Qué puntajes de salud entran como variables se elige en `01_experimentos.ipynb`, con el widget `Puntajes de salud`. Cada uno (`anxiety`, `depression`, `insomnia`, `ocd`) se marca por separado. Vacío significa que no entra ninguno. Así arranca la comparación: el modelo mira hábitos de escucha.
+Qué puntajes de salud entran como variables se elige en `01_experimentos.ipynb`, con el widget `Puntajes de salud`. Cada uno (`anxiety`, `depression`, `insomnia`, `ocd`) se marca por separado. `ninguno` significa que no entra ninguno. Así arranca la comparación: el modelo mira hábitos de escucha.
 
 ## Modelos previstos
 
@@ -115,6 +115,6 @@ La etiqueta y los puntajes de 0 a 10 son lo que la persona escribió, no un diag
 1. En Databricks, abrir `00_eda_cleaning.ipynb` con un cluster de notebooks, no con un SQL warehouse.
 2. Dejar el widget `Archivo CSV` como viene: apunta a `data/mxmh_survey_results.csv` al lado del notebook.
 3. Ejecutar de arriba hacia abajo. Tiene que quedar escrita `{catalogo}.bigdata_emanuel_rb.survey_cleaned`.
-4. Abrir `01_experimentos.ipynb` en el mismo tipo de cluster. El widget `Puntajes de salud` va vacío si se quiere repetir la comparación de arriba.
-5. Ejecutar de arriba hacia abajo. La primera celda instala LightGBM y CatBoost si el cluster no los tiene. Si pide reiniciar Python, seguir desde la celda de los widgets. Los cuatro runs quedan en `/Users/<usuario>/bigdata_emanuel_rb_tp_final`.
+4. Abrir `01_experimentos.ipynb` en el mismo tipo de cluster. El widget `Puntajes de salud` queda en `ninguno` si se quiere repetir la comparación de arriba.
+5. Ejecutar de arriba hacia abajo. La primera celda instala LightGBM y CatBoost si el cluster no los tiene. La siguiente reinicia Python para que tome los paquetes. Seguir desde la celda de los widgets. Los cuatro runs quedan en `/Users/<usuario>/bigdata_emanuel_rb_tp_final`.
 6. Abrir `02_comparacion.ipynb` y ejecutarlo de arriba hacia abajo. No entrena: lee esos runs, muestra la tabla, nombra al elegido por F1 macro de test y deja las limitaciones.
