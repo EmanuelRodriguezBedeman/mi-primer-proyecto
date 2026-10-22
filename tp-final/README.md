@@ -13,7 +13,7 @@ Predecir si una persona dice que la música le mejora, no le hace nada o le empe
 | Archivo | Qué es |
 |---|---|
 | `data/mxmh_survey_results.csv` | Encuesta, 736 respuestas y 33 columnas |
-| `00_EDA.ipynb` | Exploración y una limpieza mínima: tipos de dato y baja de `Permissions`. No imputa ni entrena |
+| `00_eda_cleaning.ipynb` | Exploración y una limpieza mínima: tipos de dato y baja de `Permissions`. No imputa ni entrena |
 | `README.md` | Esta guía |
 
 ## Datos
@@ -24,9 +24,9 @@ Los datos se generaron a través de encuesta de un Google Forms publicado en Red
 
 ## Calidad de los datos
 
-La exploración de `00_EDA.ipynb` muestra faltantes por columna, filas sin `Music effects` y valores de `BPM` que no son un tempo. El notebook marca BPM fuera de 40–250. Ese rango no viene de la encuesta: un tema suele ir de 60 a 180, y 40–250 es un margen ancho para ver valores imposibles, como 0 o 999999999. Todavía no es una regla que descarte filas. El notebook no imputa ni descarta filas.
+La exploración de `00_eda_cleaning.ipynb` muestra faltantes por columna, filas sin `Music effects` y valores de `BPM` que no son un tempo. El notebook marca BPM fuera de 40–250. Ese rango no viene de la encuesta: un tema suele ir de 60 a 180, y 40–250 es un margen ancho para ver valores imposibles, como 0 o 999999999. Todavía no es una regla que descarte filas. El notebook no imputa ni descarta filas.
 
-La limpieza que sí queda hecha es de tipos y de una columna: `Permissions` se elimina. Solo registra si la persona aceptó que se publique su respuesta. No dice nada del hábito de escucha ni de `Music effects`, que es la etiqueta.
+La limpieza que sí queda hecha es de tipos y de una columna: `Permissions` se elimina. Solo registra si la persona aceptó que se publique su respuesta. No dice nada del hábito de escucha ni de `Music effects`, que es la etiqueta. En `Primary streaming service`, `I do not use a streaming service` pasa a `No streaming` y `Other streaming service` pasa a `Other`.
 
 ## Columnas
 
@@ -89,7 +89,7 @@ Esas celdas todavía no están. Primero se mira la exploración.
 
 ## Cómo correr la exploración
 
-1. En Databricks, abrir `00_EDA.ipynb` con un cluster de notebooks, no con un SQL warehouse.
+1. En Databricks, abrir `00_eda_cleaning.ipynb` con un cluster de notebooks, no con un SQL warehouse.
 2. Dejar el widget `Archivo CSV` como viene: apunta a `data/mxmh_survey_results.csv` al lado del notebook.
 3. Ejecutar de arriba hacia abajo.
 4. El experimento de MLflow, cuando se entrene, va a ser `/Users/<usuario>/bigdata_emanuel_rb_tp_final`.
