@@ -13,7 +13,7 @@ Predecir si una persona dice que la música le mejora, no le hace nada o le empe
 | Archivo | Qué es |
 |---|---|
 | `data/mxmh_survey_results.csv` | Encuesta, 736 respuestas y 33 columnas |
-| `01_experimentos.ipynb` | Carga con Spark y exploración. Todavía no imputa ni entrena |
+| `00_EDA.ipynb` | Exploración y una limpieza mínima: tipos de dato y baja de `Permissions`. No imputa ni entrena |
 | `README.md` | Esta guía |
 
 ## Datos
@@ -24,7 +24,47 @@ Los datos se generaron a través de encuesta de un Google Forms publicado en Red
 
 ## Calidad de los datos
 
-Pendiente. Se completa con la salida de `01_experimentos.ipynb`: faltantes por columna, filas sin `Music effects`, valores de `BPM` que no son un tempo y lo demás que muestre esa corrida. El notebook marca BPM fuera de 40–250. Ese rango no viene de la encuesta: un tema suele ir de 60 a 180, y 40–250 es un margen ancho para ver valores imposibles, como 0 o 999999999. No es todavía una regla de limpieza. El arreglo se decide después de ese relevamiento. El notebook no imputa ni descarta filas.
+La exploración de `00_EDA.ipynb` muestra faltantes por columna, filas sin `Music effects` y valores de `BPM` que no son un tempo. El notebook marca BPM fuera de 40–250. Ese rango no viene de la encuesta: un tema suele ir de 60 a 180, y 40–250 es un margen ancho para ver valores imposibles, como 0 o 999999999. Todavía no es una regla que descarte filas. El notebook no imputa ni descarta filas.
+
+La limpieza que sí queda hecha es de tipos y de una columna: `Permissions` se elimina. Solo registra si la persona aceptó que se publique su respuesta. No dice nada del hábito de escucha ni de `Music effects`, que es la etiqueta.
+
+## Columnas
+
+| Columna | Qué es |
+|---|---|
+| `Timestamp` | Fecha y hora en que envió el formulario |
+| `Age` | Edad |
+| `Primary streaming service` | Servicio de música que más usa |
+| `Hours per day` | Horas de música por día |
+| `While working` | Si escucha música mientras trabaja |
+| `Instrumentalist` | Si toca un instrumento |
+| `Composer` | Si compone música |
+| `Fav genre` | Género favorito |
+| `Exploratory` | Si busca artistas o géneros nuevos |
+| `Foreign languages` | Si escucha música en otros idiomas |
+| `BPM` | Pulsos por minuto que declaró (*beats per minute*) |
+| `Frequency [Classical]` | Con qué frecuencia escucha classical |
+| `Frequency [Country]` | Con qué frecuencia escucha country |
+| `Frequency [EDM]` | Con qué frecuencia escucha EDM |
+| `Frequency [Folk]` | Con qué frecuencia escucha folk |
+| `Frequency [Gospel]` | Con qué frecuencia escucha gospel |
+| `Frequency [Hip hop]` | Con qué frecuencia escucha hip hop |
+| `Frequency [Jazz]` | Con qué frecuencia escucha jazz |
+| `Frequency [K pop]` | Con qué frecuencia escucha K-pop |
+| `Frequency [Latin]` | Con qué frecuencia escucha latin |
+| `Frequency [Lofi]` | Con qué frecuencia escucha lofi |
+| `Frequency [Metal]` | Con qué frecuencia escucha metal |
+| `Frequency [Pop]` | Con qué frecuencia escucha pop |
+| `Frequency [R&B]` | Con qué frecuencia escucha R&B |
+| `Frequency [Rap]` | Con qué frecuencia escucha rap |
+| `Frequency [Rock]` | Con qué frecuencia escucha rock |
+| `Frequency [Video game music]` | Con qué frecuencia escucha música de videojuegos |
+| `Anxiety` | Puntaje autodeclarado de ansiedad, de 0 a 10 |
+| `Depression` | Puntaje autodeclarado de depresión, de 0 a 10 |
+| `Insomnia` | Puntaje autodeclarado de insomnio, de 0 a 10 |
+| `OCD` | Puntaje autodeclarado de trastorno obsesivo-compulsivo, de 0 a 10 |
+| `Music effects` | Si la música le mejora (`Improve`), no le hace nada (`No effect`) o le empeora (`Worsen`) |
+| `Permissions` | Si aceptó que se publique su respuesta. Se elimina en la limpieza |
 
 ## Preparación en Spark
 
@@ -49,7 +89,7 @@ Esas celdas todavía no están. Primero se mira la exploración.
 
 ## Cómo correr la exploración
 
-1. En Databricks, abrir `01_experimentos.ipynb` con un cluster de notebooks, no con un SQL warehouse.
+1. En Databricks, abrir `00_EDA.ipynb` con un cluster de notebooks, no con un SQL warehouse.
 2. Dejar el widget `Archivo CSV` como viene: apunta a `data/mxmh_survey_results.csv` al lado del notebook.
 3. Ejecutar de arriba hacia abajo.
 4. El experimento de MLflow, cuando se entrene, va a ser `/Users/<usuario>/bigdata_emanuel_rb_tp_final`.
