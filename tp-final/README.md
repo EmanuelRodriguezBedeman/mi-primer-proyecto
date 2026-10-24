@@ -38,7 +38,7 @@ Los datos se generaron a través de encuesta de un Google Forms publicado en Red
 
 La exploración de `00_eda_cleaning.ipynb` muestra faltantes por columna, filas sin `Music effects` y valores de `BPM` que no son un tempo. El notebook marca BPM fuera de 40–250. Ese rango no viene de la encuesta: un tema suele ir de 60 a 180, y 40–250 es un margen ancho para ver valores imposibles, como 0 o 999999999.
 
-Esas filas se arreglan en `01_experimentos.ipynb`, no en la tabla guardada. Se tiran las 8 filas sin `Music effects`. Con `9-Tratar BPM` en `anular_imposibles`, un BPM fuera de 40–250 pasa a nulo y la fila sigue. `conservar` lo deja como está. La mediana y la moda se calculan con el train, después del corte.
+Esas filas se arreglan en `01_experimentos.ipynb`, no en la tabla guardada. Se tiran las 8 filas sin `Music effects`. `3-Tratar BPM` arranca en `conservar` y el BPM queda como está. Con `anular_imposibles`, un BPM fuera de 40–250 pasa a nulo y la fila sigue. La mediana y la moda se calculan con el train, después del corte.
 
 La limpieza que sí queda hecha es de tipos y de una columna: `Permissions` se elimina. Solo registra si la persona aceptó que se publique su respuesta. No dice nada del hábito de escucha ni de `Music effects`, que es la etiqueta. Las columnas sí/no (`While working`, `Instrumentalist`, `Composer`, `Exploratory`, `Foreign languages`) quedan como texto: `Yes`, `No` o vacío. En `Primary streaming service`, `I do not use a streaming service` pasa a `No streaming` y `Other streaming service` pasa a `Other`.
 
@@ -86,7 +86,7 @@ La carga, el casteo y la escritura de `survey_cleaned` corren con Spark. La tabl
 
 ## Features
 
-Qué scores entran como variables se elige en `01_experimentos.ipynb`, con el widget `2-Scores`. Cada uno (`anxiety`, `depression`, `insomnia`, `ocd`) se marca por separado. `ninguno` significa que no entra ninguno. Así arranca la comparación: el modelo mira hábitos de escucha. El widget `3-Como entrenar` arranca en `automatico` y, con ese valor, registra los cuatro modelos de la tabla de abajo aunque se hayan tocado los de hiperparámetros. En `manual` entrena un solo modelo con esos widgets y lo guarda con otro nombre, para no reemplazar los cuatro runs de la comparación. `9-Tratar BPM` arranca en `anular_imposibles`: un `bpm` menor a 40 o mayor a 250 pasa a nulo y la fila se queda. `conservar` deja ese valor como está en la tabla.
+Qué scores entran como variables se elige en `01_experimentos.ipynb`, con el widget `2-Scores`. El default es `todos`: entran `anxiety`, `depression`, `insomnia` y `ocd`. `ninguno` no entra ninguno. Cada puntaje también se puede marcar solo. El widget `4-Como entrenar` arranca en `automatico` y, con ese valor, registra los cuatro modelos de la tabla de abajo aunque se hayan tocado los de hiperparámetros. En `manual` entrena un solo modelo con esos widgets y lo guarda con otro nombre, para no reemplazar los cuatro runs de la comparación. `3-Tratar BPM` arranca en `conservar`: el `bpm` queda como está en la tabla. `anular_imposibles` pasa a nulo un valor menor a 40 o mayor a 250 y la fila se queda.
 
 ## Modelos previstos
 
@@ -122,6 +122,14 @@ En esa corrida el elegido es `random_forest`. Train 582 filas, test 146 (Improve
 
 La comparación y la elección están en `02_comparacion.ipynb`. No vuelve a entrenar: `mlflow.search_runs` lee los runs terminados, deja el más reciente de cada nombre, los ordena por F1 macro de test y muestra al lado quién ganaría por accuracy. Los gráficos comparan los runs entre sí y el F1 de train contra el de test. La sección **Por qué ese modelo** justifica el criterio: gana el mayor F1 macro de test, fijado antes de mirar la tabla, porque las tres clases pesan igual y la accuracy favorece a `Improve`.
 
+<tabla de runs de 02_comparacion.ipynb en Databricks>
+
+<tabla del mejor F1 macro y del mejor por accuracy>
+
+<gráfico de barras del F1 macro de test>
+
+<gráfico de F1 macro de train contra test>
+
 Las limitaciones están en la sección siguiente de este README, no en el notebook.
 
 ## Limitaciones
@@ -139,6 +147,6 @@ Los árboles de esta configuración memorizan el train: el F1 macro de train lle
 1. En Databricks, abrir `00_eda_cleaning.ipynb` con un cluster de notebooks, no con un SQL warehouse.
 2. Dejar el widget `Archivo CSV` como viene: apunta a `data/mxmh_survey_results.csv` al lado del notebook.
 3. Ejecutar de arriba hacia abajo. Tiene que quedar escrita `{catalogo}.bigdata_emanuel_rb.survey_cleaned`. Si esa tabla se escribió antes de dejar las columnas sí/no como texto, hay que correr este notebook otra vez: el `overwrite` la reemplaza.
-4. Abrir `01_experimentos.ipynb` en el mismo tipo de cluster. Para repetir la comparación de arriba, `2-Scores` queda en `ninguno`, `3-Como entrenar` en `automatico` y `9-Tratar BPM` en `anular_imposibles`.
-5. Ejecutar de arriba hacia abajo. La primera celda instala LightGBM y CatBoost si el cluster no los tiene. La siguiente reinicia Python para que tome los paquetes. Seguir desde la celda de los widgets. Los cuatro runs quedan en `/Users/<usuario>/bigdata_emanuel_rb_tp_final`. Un experimento suelto se hace pasando `3-Como entrenar` a `manual` y volviendo a ejecutar desde la celda de la matriz.
+4. Abrir `01_experimentos.ipynb` en el mismo tipo de cluster. Para la corrida por defecto, `2-Scores` queda en `todos`, `3-Tratar BPM` en `conservar` y `4-Como entrenar` en `automatico`. La tabla local de arriba se hizo sin puntajes de salud y con el BPM imposible en nulo: para repetirla, `2-Scores` se pasa a `ninguno` y `3-Tratar BPM` a `anular_imposibles`.
+5. Ejecutar de arriba hacia abajo. La primera celda instala LightGBM y CatBoost si el cluster no los tiene. La siguiente reinicia Python para que tome los paquetes. Seguir desde la celda de los widgets. Los cuatro runs quedan en `/Users/<usuario>/bigdata_emanuel_rb_tp_final`. Un experimento suelto se hace pasando `4-Como entrenar` a `manual` y volviendo a ejecutar desde la celda de la matriz.
 6. Abrir `02_comparacion.ipynb` y ejecutarlo de arriba hacia abajo. No entrena: lista los runs terminados, muestra el mejor por F1 macro al lado del mejor por accuracy, grafica el orden y el train contra el test, y justifica la elección. Las limitaciones están en este README.
