@@ -94,10 +94,10 @@ Los cuatro ven la misma matriz y el mismo corte 80/20 estratificado (`random_sta
 
 | Run | Modelo |
 |---|---|
-| `logistica` | Regresión logística, `C=1` |
-| `random_forest` | Random forest, 100 árboles, `class_weight='balanced'` |
-| `lightgbm` | LightGBM, 100 árboles, `class_weight='balanced'` |
-| `catboost` | CatBoost, 100 iteraciones, `auto_class_weights='Balanced'` |
+| `exp_01` | Regresión logística, `C=1` |
+| `exp_02` | Random forest, 100 árboles, `class_weight='balanced'` |
+| `exp_03` | LightGBM, 100 árboles, `class_weight='balanced'` |
+| `exp_04` | CatBoost, 100 iteraciones, `auto_class_weights='Balanced'` |
 
 `mlflow.autolog()` queda prendido. Al entrenar guarda los parámetros del pipeline, las métricas de ese ajuste y el modelo. El notebook suma el F1 macro de train y de test, el F1 de cada clase y la matriz, que son los nombres que lee `02_comparacion.ipynb`. El experimento es `/Users/<usuario>/bigdata_emanuel_rb_tp_final`. Cada entrenamiento es un run.
 
@@ -107,16 +107,18 @@ De cada run se guardan:
 - **Métricas:** F1 macro de train, F1 macro de test, accuracy de test y el F1 de `Improve`, `No effect` y `Worsen`.
 - **Artefactos:** la figura `matriz_confusion.png` y el pipeline que guarda autolog al hacer `fit`. En MLflow 3 el pipeline aparece en **Logged models**.
 
-Una corrida local con la misma semilla, sin puntajes de salud, y con scikit-learn 1.9.1, LightGBM 4.7.0 y CatBoost 1.2.10 dio este orden. El número de la entrega es el que imprime `02_comparacion.ipynb` al leer MLflow en Databricks: si el runtime trae otra versión, el cuarto decimal se puede mover.
+Esos parámetros son la trazabilidad del run. Con `modelo`, `que_entrenar`, `tratar_bpm`, `puntajes_salud`, `balanceo`, `C`, `n_arboles`, `profundidad`, `random_state`, las filas de train y de test y el nombre de la tabla se puede reconstruir con qué matriz se entrenó. `02_comparacion.ipynb` las muestra al lado del F1. De cada nombre se queda el último run terminado. La comparación usa `exp_01` a `exp_04`.
 
-| Run | F1 macro test | F1 macro train | Accuracy test | F1 Improve | F1 No effect | F1 Worsen |
+La tabla de abajo no es esa corrida. Es una prueba local, con la misma semilla, scikit-learn 1.9.1, LightGBM 4.7.0 y CatBoost 1.2.10, sin puntajes de salud (`puntajes_salud=ninguno`) y con el BPM imposible en nulo (`tratar_bpm=anular_imposibles`). Los nombres son el modelo, no `exp_01` a `exp_04`. El número de la entrega es el que imprime `02_comparacion.ipynb` en Databricks, con el default: `puntajes_salud` los cuatro scores y `tratar_bpm=conservar`. Si el runtime trae otra versión, el cuarto decimal se puede mover.
+
+| Modelo de esa prueba | F1 macro test | F1 macro train | Accuracy test | F1 Improve | F1 No effect | F1 Worsen |
 |---|---:|---:|---:|---:|---:|---:|
-| `random_forest` | 0.3891 | 1.0000 | 0.7192 | 0.8225 | 0.3448 | 0.0000 |
-| `lightgbm` | 0.3775 | 1.0000 | 0.7260 | 0.8305 | 0.3019 | 0.0000 |
-| `catboost` | 0.3713 | 1.0000 | 0.6986 | 0.8087 | 0.3051 | 0.0000 |
-| `logistica` | 0.3387 | 0.6673 | 0.6781 | 0.8017 | 0.2143 | 0.0000 |
+| random forest | 0.3891 | 1.0000 | 0.7192 | 0.8225 | 0.3448 | 0.0000 |
+| lightgbm | 0.3775 | 1.0000 | 0.7260 | 0.8305 | 0.3019 | 0.0000 |
+| catboost | 0.3713 | 1.0000 | 0.6986 | 0.8087 | 0.3051 | 0.0000 |
+| logística | 0.3387 | 0.6673 | 0.6781 | 0.8017 | 0.2143 | 0.0000 |
 
-En esa corrida el elegido es `random_forest`. Train 582 filas, test 146 (Improve 109, No effect 34, Worsen 3). Ningún modelo acertó una fila `Worsen` del test. Los tres árboles llegan a F1 macro 1 en train y bajan a menos de 0.40 en test: memorizan este corte. La logística no memoriza tanto y queda última en la métrica que elegimos.
+En esa prueba local el mayor F1 macro fue el random forest. Train 582 filas, test 146 (Improve 109, No effect 34, Worsen 3). Ningún modelo acertó una fila `Worsen` del test. Los tres árboles llegan a F1 macro 1 en train y bajan a menos de 0.40 en test: memorizan este corte. La logística no memoriza tanto y queda última en la métrica de esa prueba. No es el modelo elegido de la entrega: ese sale de `exp_01` a `exp_04` con los widgets por defecto.
 
 ## Comparación, elección y limitaciones
 
@@ -140,7 +142,9 @@ La encuesta salió de un Google Form en Reddit, Discord y redes. Quien respondi�
 
 `Worsen` tiene 17 filas en toda la encuesta y alrededor de 3 en el test. Con tan pocas, el F1 de esa clase se mueve si cambia la semilla, y el orden entre modelos también.
 
-Los árboles de esta configuración memorizan el train: el F1 macro de train llega a 1 y el de test queda mucho más abajo. Los hiperparámetros de la comparación fija están fijos. La elección es el mejor F1 macro de test en este corte, no una búsqueda ni un resultado sobre la población.
+Los árboles de la prueba local memorizan el train: el F1 macro de train llega a 1 y el de test queda mucho más abajo. Los hiperparámetros de la comparación fija están fijos. No hay búsqueda ni validación cruzada: un solo corte 80/20, `random_state=7`. La elección es el mejor F1 macro de test en ese corte, no un resultado sobre la población.
+
+No hay una segunda tanda de respuestas. Si llegara, se podría mirar si cambia la mezcla de géneros (covariables), la proporción de `Improve`, `No effect` y `Worsen` (etiqueta) o la relación entre los hábitos y `music_effects` (concepto). Con un solo formulario eso no se mide.
 
 ## Cómo correr
 
