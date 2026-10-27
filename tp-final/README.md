@@ -6,7 +6,7 @@
 
 ## Objetivo
 
-Predecir si una persona dice que la música le mejora, no le hace nada o le empeora la salud mental, a partir de sus hábitos de escucha. Es una clasificación de la variable Music effects, con las clases Improve, No effect y Worsen. La métrica de comparación es el `F1` macro de test: el promedio del `F1` de las tres clases, con el mismo peso para cada una. La accuracy queda corta porque el 74 % de las respuestas ya es Improve, y un modelo que siempre elige esa clase acierta eso sin distinguir las otras dos.
+Predecir si una persona dice que la música le mejora, no le hace nada o le empeora la salud mental, a partir de sus hábitos de escucha. Es una clasificación de la variable `Music effects`, con las clases `Improve`, `No effect` y `Worsen`. La métrica de comparación es el `F1` macro de test: el **promedio del** `F1` de las tres clases, con el mismo peso para cada una. La accuracy queda corta porque el 74 % de las respuestas ya es Improve, y un modelo que siempre elige esa clase acierta eso sin distinguir las otras dos.
 
 ## Contenido
 
@@ -17,6 +17,11 @@ Predecir si una persona dice que la música le mejora, no le hace nada o le empe
 | `01_experimentos.ipynb` | Feature engineering, corte, modelos y registro en MLflow |
 | `02_comparacion.ipynb` | Compara los runs y elige el mejor F1 macro de test |
 | `README.md` | Esta guía, con las limitaciones |
+| `imgs/` | Capturas de la comparación en Databricks: la elección por F1 y por accuracy, y los dos gráficos |
+
+## Flujo
+
+Del CSV al run con mayor F1 macro de test.
 
 ```mermaid
 flowchart LR
@@ -30,9 +35,13 @@ flowchart LR
 
 ## Datos
 
-Fuente: [Music & Mental Health Survey Results](https://www.kaggle.com/datasets/catherinerasgaitis/mxmh-survey-results), Catherine Rasgaitis. Licencia CC0. El CSV está en el repo porque es público además no es necesario almacenar ningún tipo de credencial de kaggle para acceder a él en databricks.
+La fuente es [Music & Mental Health Survey Results](https://www.kaggle.com/datasets/catherinerasgaitis/mxmh-survey-results), de Catherine Rasgaitis, con licencia CC0. El archivo está en el repo, en `data/mxmh_survey_results.csv`, porque es público. Para leerlo en Databricks no hace falta una credencial de Kaggle.
 
-Los datos se generaron a través de encuesta de un Google Forms publicado en Reddit, Discord y redes. No es una muestra de la población.
+Se recolectó con un Google Form publicado en Reddit, Discord y redes. Las marcas de tiempo del archivo arrancan el 27 de agosto de 2022. Quien respondió eligió entrar, así que no es una muestra de la población.
+
+El formulario preguntaba por los hábitos de escucha y por cómo la persona describe su salud mental, para ver qué relación hay entre la música que escucha y el efecto que le atribuye. `Music effects` es esa respuesta: si dice que la música le mejora, no le hace nada o le empeora.
+
+El archivo tiene 736 filas y 33 columnas. Cada fila es una persona. Además de la etiqueta están la edad, el streaming, las horas, el género favorito, el BPM, la frecuencia de 16 géneros y cuatro puntajes de 0 a 10. El detalle de cada columna está en la tabla de abajo.
 
 ## Calidad de los datos
 
@@ -86,7 +95,7 @@ La carga, el casteo y la escritura de `survey_cleaned` corren con Spark. La tabl
 
 ## Features
 
-Qué scores entran como variables se elige en `01_experimentos.ipynb`, con el widget `2-Scores`. El default es `todos`: entran `anxiety`, `depression`, `insomnia` y `ocd`. `ninguno` no entra ninguno. Cada puntaje también se puede marcar solo. El widget `4-Como entrenar` arranca en `automatico` y, con ese valor, registra los cuatro modelos de la tabla de abajo aunque se hayan tocado los de hiperparámetros. En `manual` entrena un solo modelo con esos widgets y lo guarda con otro nombre, para no reemplazar los cuatro runs de la comparación. `3-Tratar BPM` arranca en `conservar`: el `bpm` queda como está en la tabla. `anular_imposibles` pasa a nulo un valor menor a 40 o mayor a 250 y la fila se queda.
+Cuales scores de salud mental dada por los encuestados entran como variables se elige en `01_experimentos.ipynb`, con el widget `2-Scores`. El default es `todos`: entran `anxiety`, `depression`, `insomnia` y `ocd`. `ninguno` no entra ninguno. Cada puntaje también se puede marcar solo. El widget `4-Como entrenar` arranca en `automatico` y, con ese valor, registra los cuatro modelos de la tabla de abajo aunque se hayan tocado los de hiperparámetros. En `manual` entrena un solo modelo con esos widgets y lo guarda con otro nombre, para no reemplazar los cuatro runs de la comparación. `3-Tratar BPM` arranca en `conservar`: el `bpm` queda como está en la tabla. `anular_imposibles` pasa a nulo un valor menor a 40 o mayor a 250 y la fila se queda.
 
 ## Modelos previstos
 
@@ -111,39 +120,22 @@ De cada run se guardan:
 
 Esos parámetros son la trazabilidad del run. Con `modelo`, `que_entrenar`, `tratar_bpm`, `puntajes_salud`, `balanceo`, `C`, `n_arboles`, `profundidad`, `random_state`, las filas de train y de test y el nombre de la tabla se puede reconstruir con qué matriz se entrenó. `02_comparacion.ipynb` las muestra al lado del F1. De cada nombre se queda el último run terminado. La comparación usa `exp_01` a `exp_04`.
 
-La tabla de abajo no es esa corrida. Es una prueba local, con la misma semilla, scikit-learn 1.9.1, LightGBM 4.7.0 y CatBoost 1.2.10, sin puntajes de salud (`puntajes_salud=ninguno`) y con el BPM imposible en nulo (`tratar_bpm=anular_imposibles`). Los nombres son el modelo, no `exp_01` a `exp_04`. El número de la entrega es el que imprime `02_comparacion.ipynb` en Databricks, con el default: `puntajes_salud` los cuatro scores y `tratar_bpm=conservar`. Si el runtime trae otra versión, el cuarto decimal se puede mover.
-
-| Modelo de esa prueba | F1 macro test | F1 macro train | Accuracy test | F1 Improve | F1 No effect | F1 Worsen |
-|---|---:|---:|---:|---:|---:|---:|
-| random forest | 0.3891 | 1.0000 | 0.7192 | 0.8225 | 0.3448 | 0.0000 |
-| lightgbm | 0.3775 | 1.0000 | 0.7260 | 0.8305 | 0.3019 | 0.0000 |
-| catboost | 0.3713 | 1.0000 | 0.6986 | 0.8087 | 0.3051 | 0.0000 |
-| logística | 0.3387 | 0.6673 | 0.6781 | 0.8017 | 0.2143 | 0.0000 |
-
-En esa prueba local el mayor F1 macro fue el random forest. Train 582 filas, test 146 (Improve 109, No effect 34, Worsen 3). Ningún modelo acertó una fila `Worsen` del test. Los tres árboles llegan a F1 macro 1 en train y bajan a menos de 0.40 en test: memorizan este corte. La logística no memoriza tanto y queda última en la métrica de esa prueba. No es el modelo elegido de la entrega: ese sale de `exp_01` a `exp_04` con los widgets por defecto.
-
 ## Comparación, elección y limitaciones
 
 La comparación y la elección están en `02_comparacion.ipynb`. No vuelve a entrenar: `mlflow.search_runs` lee los runs terminados, deja el más reciente de cada nombre, los ordena por F1 macro de test y muestra al lado quién ganaría por accuracy. Los gráficos comparan los runs entre sí y el F1 de train contra el de test. La sección **Por qué ese criterio** justifica la elección: gana el mayor F1 macro de test, fijado antes de mirar la tabla, porque las tres clases pesan igual y la accuracy favorece a `Improve`.
 
-<tabla de runs de 02_comparacion.ipynb en Databricks>
-
-<tabla del mejor F1 macro y del mejor por accuracy>
-
 | run | modelo | que_entrenar | tratar_bpm | balanceo | puntajes_salud | train_f1_macro | test_f1_macro | test_accuracy | f1_improve | f1_no_effect | f1_worsen |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | exp_04 | catboost | automatico | conservar | como_la_comparacion | anxiety,depression,insomnia,ocd | 1.0 | 0.3928 | 0.726 | 0.8276 | 0.3509 | 0.0 |
-| lightgbm | lightgbm | automatico | anular_imposibles | como_la_comparacion | ninguno | 1.0 | 0.3758 | 0.7397 | 0.8417 | 0.2857 | 0.0 |
 | exp_01 | logistica | automatico | conservar | como_la_comparacion | anxiety,depression,insomnia,ocd | 0.5984 | 0.3611 | 0.7055 | 0.824 | 0.2593 | 0.0 |
 | exp_03 | lightgbm | automatico | conservar | como_la_comparacion | anxiety,depression,insomnia,ocd | 1.0 | 0.3498 | 0.7055 | 0.8186 | 0.2308 | 0.0 |
-| logistica | logistica | automatico | anular_imposibles | como_la_comparacion | ninguno | 0.5553 | 0.3442 | 0.7123 | 0.8285 | 0.2041 | 0.0 |
-| catboost | catboost | automatico | anular_imposibles | como_la_comparacion | ninguno | 1.0 | 0.3287 | 0.6575 | 0.7826 | 0.2034 | 0.0 |
-| random_forest | random_forest | automatico | anular_imposibles | como_la_comparacion | ninguno | 1.0 | 0.3051 | 0.7534 | 0.8583 | 0.0571 | 0.0 |
 | exp_02 | random_forest | automatico | conservar | como_la_comparacion | anxiety,depression,insomnia,ocd | 1.0 | 0.2835 | 0.7397 | 0.8504 | 0.0 | 0.0 |
 
-<gráfico de barras del F1 macro de test>
+![mejor F1 y accuracy](imgs/image.png)
 
-<gráfico de F1 macro de train contra test>
+![grafico barras f1](imgs/image-1.png)
+
+![gráfico de f1 train/test](imgs/image-2.png)
 
 Las limitaciones están en la sección siguiente de este README, no en el notebook.
 
@@ -155,7 +147,7 @@ La encuesta salió de un Google Form en Reddit, Discord y redes. Quien respondi�
 
 `Worsen` tiene 17 filas en toda la encuesta y alrededor de 3 en el test. Con tan pocas, el F1 de esa clase se mueve si cambia la semilla, y el orden entre modelos también.
 
-Los árboles de la prueba local memorizan el train: el F1 macro de train llega a 1 y el de test queda mucho más abajo. Los hiperparámetros de la comparación fija están fijos. No hay búsqueda ni validación cruzada: un solo corte 80/20, `random_state=7`. La elección es el mejor F1 macro de test en ese corte, no un resultado sobre la población.
+En la tabla de la entrega, `exp_02`, `exp_03` y `exp_04` tienen F1 macro de train 1 y el de test mucho más abajo: acertaron todas las filas de entrenamiento y no sostuvieron ese resultado en el test. La logística, `exp_01`, queda en 0.5984 en train. La prueba local mostró el mismo patrón en los árboles. Los hiperparámetros de la comparación fija están fijos. No hay búsqueda ni validación cruzada: un solo corte 80/20, `random_state=7`. La elección es el mejor F1 macro de test en ese corte, no un resultado sobre la población.
 
 No hay una segunda tanda de respuestas. Si llegara, se podría mirar si cambia la mezcla de géneros (covariables), la proporción de `Improve`, `No effect` y `Worsen` (etiqueta) o la relación entre los hábitos y `music_effects` (concepto). Con un solo formulario eso no se mide.
 
